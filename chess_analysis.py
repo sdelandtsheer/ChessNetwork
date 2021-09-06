@@ -13,8 +13,8 @@ from src import db
 # minimum number of moves
 min_moves = 10
 halfmoves_to_analyze = 10
-nr_games = 2000
-display_threshold = 0.005
+nr_games = 10000
+display_threshold = 0.01
 folder = 'data'
 filename = 'all_with_filtered_anotations_since1998.txt'
 # filename='dummy.txt'
@@ -55,9 +55,13 @@ for i, game in enumerate(f):
         break
 
 # remove and count doublons:
-
 net = edge_list.loc[:, ['FEN_from', 'FEN_to']]
 net2 = net.groupby(net.columns.tolist()).size().reset_index().rename(columns={0:'count'}).sort_values(by='count', ascending=False)
+
+#save to file
+net2.to_csv('compressed_net.csv', index=False)
+
+#import to Networkx and draw giant component
 G = nx.from_pandas_edgelist(net2[net2['count']>=(display_threshold*nr_games)], source='FEN_from', target='FEN_to', edge_attr='count')
 Gc = sorted(nx.connected_components(G), key=len, reverse=True)
 G_main = G.subgraph(Gc[0])
